@@ -109,7 +109,20 @@ void clientThreadLoop(int clientFd, map<string, vector<int> > *documentsDict) {
            string documentName = msg.substr(found+1); //the name of the document starts after space delimiter
            printf("Document: %s \n", documentName.c_str());
 
+           auto elem = documentsDict->find(documentName);
+           if(elem != documentsDict->end()) {
+               if(elem->second.size() <=2 ) {
+                   elem->second.push_back(clientFd);
+               }
 
+               else {
+                   Write(clientFd, "ERROR: There are already two clients!");
+
+               }
+
+           }
+
+            Write(clientFd, "OK!");
        }
 
    }

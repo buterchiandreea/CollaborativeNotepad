@@ -80,11 +80,11 @@ void MainMenu::onCreatePressed(bool enabled){
 
 
             else {
-                Notepad *notepad = new Notepad;
-                notepad->setWindowTitle(result);
-                notepad->show();
-
-                this->_documents.push_back(new std::string (result.toStdString()));
+               /* Notepad *notepad = new Notepad;
+                  notepad->setWindowTitle(result);
+                  notepad->show();
+               */
+                  this->_documents.push_back(new std::string (result.toStdString()));
             }
         }
 
@@ -124,6 +124,19 @@ void MainMenu::onOpenPressed(bool enabled){
             QString str = this->_table->model()->data(index).toString();
             openCommand += str.toStdString();
             this->server->WriteCommand(openCommand);
+
+            string answer;
+            answer = this->server->ReadCommand();
+            string errorMessage = "ERROR";
+            std::size_t found = answer.find(errorMessage);
+
+            if(found == 0) {
+
+                QMessageBox messageBox;
+                messageBox.critical(0, "Error", "File is already edited by two clients!");
+
+            }
+
 
         }
     }
