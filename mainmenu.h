@@ -26,7 +26,7 @@ private:
     vector<QTableWidgetItem*> _documentWidgets;
     vector<string*> _documents;
     ServerConnection *server;
-    static const int PORT = 6969;
+    static const int PORT = 8585;
 
 
 signals:

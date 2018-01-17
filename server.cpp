@@ -12,8 +12,11 @@
 #include <vector>
 #include <thread>
 #include <sstream>
+#include <mutex>
 #include "network_utils.h"
 #include "colors.h"
+#include "document.h"
+#include "operation.h"
 
 
 using std::thread;
@@ -25,21 +28,18 @@ using std::stringstream;
 
 
 #ifndef PORT
-#define PORT 6969
+#define PORT 8585
 #endif
 
 #ifndef SERVER_BIND_ADDRESS
 #define SERVER_BIND_ADDRESS "localhost"
 #endif
 
-
 extern int errno;
 
-
-
-
-void clientThreadLoop(int clientFd, map<string, vector<int> > *documentsDict) {
+void clientThreadLoop(int clientFd, map<string, Document> *documentsDict, map<int, string> *openedDocuments) {
    printf("[SERVER THREAD] Thread with fd %d started \n", clientFd);
+   //printf("Opened docs: %d\n", openedDocuments->size());
    while(1) {
        string msg;
        try {
@@ -56,8 +56,8 @@ void clientThreadLoop(int clientFd, map<string, vector<int> > *documentsDict) {
            ss << documentsDict->size();
            printf("%lu %s \n", documentsDict->size(), ss.str().c_str());
            Write(clientFd, ss.str());//server transmits to the client the number of existent documents
-           for(auto it : *documentsDict) {
-               Write(clientFd, it.first); //server transmits the existent documents
+           for(auto it = documentsDict->begin(); it != documentsDict->end(); it++) {
+               Write(clientFd, it->first); //server transmits the existent documents
            }
 
        }
@@ -69,14 +69,11 @@ void clientThreadLoop(int clientFd, map<string, vector<int> > *documentsDict) {
            printf("Document: %s \n", documentName.c_str());
 
            if(documentsDict->find(documentName) != documentsDict->end()) {
-              printf("Hello! Here is an error!\n");
               Write(clientFd, "ERROR: File with the same name already exists!");
               continue;
            }
 
-           printf("Hello! Here is not an error!\n");
-
-           documentsDict->insert(std::make_pair(documentName, vector<int>()));
+           documentsDict->insert(std::make_pair(documentName, Document(documentName)));
            Write(clientFd, "OK!");
        }
 
@@ -111,22 +108,45 @@ void clientThreadLoop(int clientFd, map<string, vector<int> > *documentsDict) {
 
            auto elem = documentsDict->find(documentName);
            if(elem != documentsDict->end()) {
-               if(elem->second.size() <=2 ) {
-                   elem->second.push_back(clientFd);
-               }
+               if(elem->second.clients.size() < 2) {
+                   int lastOpId = elem->second.AddClient(clientFd);
+                   openedDocuments->insert(std::make_pair(clientFd, documentName));
 
+                   stringstream ss;
+                   ss << lastOpId << " " << elem->second.documentText;
+                   Write(clientFd, ss.str());
+               }
                else {
                    Write(clientFd, "ERROR: There are already two clients!");
 
                }
-
            }
+       }
+       else if(msg.compare(0, 3, "add") == 0 || msg.compare(0, 3, "del") == 0) {
+//checking for the type of operation
+            auto doc = openedDocuments->find(clientFd);
 
-            Write(clientFd, "OK!");
+            if (doc != openedDocuments->end()) {
+                string documentName = doc->second;
+                printf("Docname: %s\n", documentName.c_str());
+                auto elem = documentsDict->find(documentName);
+                if(elem != documentsDict->end()) {
+                    elem->second.ApplyOperation(clientFd, msg);
+                }
+            }
        }
 
    }
 
+
+   auto doc = openedDocuments->find(clientFd);
+   printf("Client disconnected: %d\n", clientFd);
+   if (doc != openedDocuments->end()) {
+       string documentName = doc->second;
+       auto elem = documentsDict->find(documentName);
+       elem->second.DisconnectClient(clientFd);
+       openedDocuments->erase(doc);
+   }
 }
 
 
@@ -162,7 +182,8 @@ int serverLoop(string baseAddr, int port, int backlog) {
         perror ("[SERVER] Error at listen! \n");
         return errno;
     }
-    map<string, vector<int> > *documentsDict = new map<string, vector<int> >();
+    map<string, Document > *documentsDict = new map<string, Document >();
+    map<int, string> *openedDocuments = new map<int, string>();
 
     while (1)
     {
@@ -176,11 +197,9 @@ int serverLoop(string baseAddr, int port, int backlog) {
 
         printf("[SERVER] Client with fd %d connected \n", clientFd);
 
-        auto client = thread(clientThreadLoop, clientFd, documentsDict);
-        client.join();
+        new thread(clientThreadLoop, clientFd, documentsDict, openedDocuments);
     }
 }
-
 
 
 

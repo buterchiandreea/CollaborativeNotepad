@@ -17,7 +17,8 @@ SOURCES += main.cpp\
     mainmenu.cpp \
     notepad.cpp \
     ServerConnection.cpp \
-    operation.cpp
+    operation.cpp \
+    network_utils.cpp
 
 HEADERS  += mainwindow.h \
     documentstable.h \

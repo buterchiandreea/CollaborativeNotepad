@@ -80,10 +80,7 @@ void MainMenu::onCreatePressed(bool enabled){
 
 
             else {
-               /* Notepad *notepad = new Notepad;
-                  notepad->setWindowTitle(result);
-                  notepad->show();
-               */
+
                   this->_documents.push_back(new std::string (result.toStdString()));
             }
         }
@@ -99,9 +96,6 @@ void MainMenu::onCreatePressed(bool enabled){
 }
 
 void MainMenu::onOpenPressed(bool enabled){
-
-
-
     QModelIndexList selection = this->_table->selectionModel()->selectedRows();
 
     if(selection.empty()) {
@@ -113,41 +107,30 @@ void MainMenu::onOpenPressed(bool enabled){
         return;
 
     }
-
     else {
-
-        string openCommand = "open ";
-
-        for(int i=selection.count() - 1; i >= 0; i--) {
+        for(int i=0; i< selection.count(); i++) {
 
             QModelIndex index = selection.at(i);
-            QString str = this->_table->model()->data(index).toString();
-            openCommand += str.toStdString();
-            this->server->WriteCommand(openCommand);
+            int row = index.row();
+            string documentName = this->_documents[row]->c_str();
+            Notepad *notepad = new Notepad();
 
-            string answer;
-            answer = this->server->ReadCommand();
+            string answer = notepad->Open(documentName);
             string errorMessage = "ERROR";
             std::size_t found = answer.find(errorMessage);
-
             if(found == 0) {
-
                 QMessageBox messageBox;
                 messageBox.critical(0, "Error", "File is already edited by two clients!");
+                // close this window
 
+                delete notepad;
+                return;
             }
 
-
+            QString docTitle = QString(documentName.c_str());
+            notepad->setWindowTitle(docTitle);
+            notepad->show();
         }
-    }
-
-    for(int i=0; i< selection.count(); i++) {
-
-        QModelIndex index = selection.at(i);
-        int row = index.row();
-        Notepad *notepad = new Notepad;
-        notepad->setWindowTitle(this->_documents[row]->c_str());
-        notepad->show();
     }
 
 
