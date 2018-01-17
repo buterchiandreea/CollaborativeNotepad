@@ -21,5 +21,4 @@ https://www.youtube.com/playlist?list=PLS1QulWo1RIZiBcTr5urECberTITj7gjA <br />
 http://en.cppreference.com/w/ <br />
 https://stackoverflow.com/ <br />
 
-The application architecture can be visualized at: file:///home/retele/CollaborativeNotepad/html/index.html.
 
