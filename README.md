@@ -19,6 +19,6 @@ https://profs.info.uaic.ro/~computernetworks/files/NetEx/S12/ServerConcThread/cl
 http://doc.qt.io/qtcreator/ <br />
 https://www.youtube.com/playlist?list=PLS1QulWo1RIZiBcTr5urECberTITj7gjA <br />
 http://en.cppreference.com/w/ <br />
-https://stackoverflow.com/ <br />
+
 
 
