@@ -9,7 +9,7 @@ For the build step use the **MakeFile** existing in the folder project and execu
 **make run** <br />
 After this step open QtCreator application and press **Run** button. <br />
 
-Collaborative Notepad is an application for file concurrent editing. The application is friendly user, due it's graphic interface.
+Collaborative Notepad is an application for file concurrent editing. The application is friendly user, due its graphic interface.
 The clients have the possibility to *create, open, edit, delete and download* documents. The editing process is concurrent, two clients can edit a document at the same time. The application supports editing with *synchronization*: any text modification is send to the *pair client* in a real time. <br />
 
 **Refereces**:<br />
